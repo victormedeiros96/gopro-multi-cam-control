@@ -17,6 +17,7 @@ class GoProCamera:
         self.status = {}
         self.battery_level = 0
         self.is_recording = False
+        self.gps_lock = False
         self._lock = threading.Lock()
 
     def get_status(self):
@@ -28,6 +29,7 @@ class GoProCamera:
                     self.status = data
                     self.battery_level = self._parse_battery(data)
                     self.is_recording = self._parse_recording(data)
+                    self.gps_lock = self._parse_gps_lock(data)
                 return data
         except Exception as e:
             print(f"Erro ao obter status de {self.ip}: {e}")
@@ -55,6 +57,10 @@ class GoProCamera:
     def _parse_recording(self, data):
         status = data.get("status", {})
         return bool(status.get("8", 0))
+
+    def _parse_gps_lock(self, data):
+        status = data.get("status", {})
+        return bool(status.get("68", 0))
 
     def enable_usb_control(self):
         try:
@@ -156,6 +162,10 @@ class GoProCamera:
     def is_currently_recording(self):
         with self._lock:
             return self.is_recording
+
+    def get_gps_lock(self):
+        with self._lock:
+            return self.gps_lock
 
 
 def check_gopro_ip(ip):
@@ -383,6 +393,7 @@ class GoProManager:
             results[cam.ip] = {
                 "battery": cam.get_battery_level(),
                 "recording": cam.is_currently_recording(),
+                "gps_lock": cam.get_gps_lock(),
                 "status": cam.status,
             }
         return results

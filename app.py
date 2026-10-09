@@ -155,7 +155,13 @@ class CameraWidget(QGroupBox):
         self.record_label.setStyleSheet(
             "color: white; background-color: #000000; padding: 3px 10px; border-radius: 3px;"
         )
+        self.gps_label = QLabel(" GPS: --")
+        self.gps_label.setFont(QFont("", 10, QFont.Weight.Bold))
+        self.gps_label.setStyleSheet(
+            "color: #888; background-color: #1a1a1a; padding: 3px 10px; border-radius: 3px;"
+        )
         info_layout.addWidget(self.record_label)
+        info_layout.addWidget(self.gps_label)
         info_layout.addStretch()
 
         layout.addWidget(self.image_label, 1)
@@ -182,7 +188,7 @@ class CameraWidget(QGroupBox):
             painter.end()
         self.image_label.setPixmap(scaled)
 
-    def update_status(self, battery, recording):
+    def update_status(self, battery, recording, gps_lock=False):
         self.setTitle(f"{self.base_title} - {battery}%")
         if recording:
             self.record_label.setText(" GRAVANDO")
@@ -193,6 +199,16 @@ class CameraWidget(QGroupBox):
             self.record_label.setText(" PARADO")
             self.record_label.setStyleSheet(
                 "color: white; background-color: #000000; padding: 3px 10px; border-radius: 3px;"
+            )
+        if gps_lock:
+            self.gps_label.setText(" GPS: travado")
+            self.gps_label.setStyleSheet(
+                "color: white; background-color: #27ae60; padding: 3px 10px; border-radius: 3px;"
+            )
+        else:
+            self.gps_label.setText(" GPS: sem sinal")
+            self.gps_label.setStyleSheet(
+                "color: #ccc; background-color: #5a4a00; padding: 3px 10px; border-radius: 3px;"
             )
 
 
@@ -491,6 +507,7 @@ class GoProControlApp(QMainWindow):
                 self.camera_widgets[i].update_status(
                     s.get("battery", 0),
                     s.get("recording", False),
+                    s.get("gps_lock", False),
                 )
 
     def closeEvent(self, event):
